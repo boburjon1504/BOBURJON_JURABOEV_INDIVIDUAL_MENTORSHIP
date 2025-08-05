@@ -15,7 +15,7 @@ public interface IOpenMeteoApi
         [AliasAs("timezone")] string timezone = "auto");
 
     [Get("/v1/forecast")]
-    Task<CurrentWeatherReponse> GetCurrentTemperature(
+    Task<CurrentWeatherReponse> GetCurrentTemperatureAsync(
         [AliasAs("latitude")] double latitude,
         [AliasAs("longitude")] double longitude,
         [AliasAs("current_weather")] bool currentWeather = true);
