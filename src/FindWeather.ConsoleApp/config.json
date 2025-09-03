@@ -1,0 +1,4 @@
+{
+  "OpenMeteo": "https://api.open-meteo.com",
+  "GeoCoding": "https://geocoding-api.open-meteo.com"
+}
