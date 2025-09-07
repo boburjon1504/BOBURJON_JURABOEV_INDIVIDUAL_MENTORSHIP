@@ -4,5 +4,6 @@
   "ForecastPeriod": {
     "MaxDays": 7,
     "MinDays": 1
-  }
+  },
+  "MaxQueryExecutionTimeInSeconds": 2 
 }
