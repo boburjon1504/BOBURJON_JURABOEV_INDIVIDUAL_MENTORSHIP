@@ -1,4 +1,8 @@
 {
   "OpenMeteo": "https://api.open-meteo.com",
-  "GeoCoding": "https://geocoding-api.open-meteo.com"
+  "GeoCoding": "https://geocoding-api.open-meteo.com",
+  "ForecastPeriod": {
+    "MaxDays": 7,
+    "MinDays": 1
+  }
 }
