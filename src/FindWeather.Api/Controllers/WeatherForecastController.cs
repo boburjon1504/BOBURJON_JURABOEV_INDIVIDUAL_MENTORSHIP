@@ -1,0 +1,19 @@
+﻿using FindWeather.BusinessLogic.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace FindWeather.Api.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class WeatherForecastController(IWeatherProvider weatherProvider) : ControllerBase
+    {
+        [HttpGet("current-weather/{city}")]
+        public async Task<IActionResult> GetCurrentWeather(string city, CancellationToken cancellationToken)
+        {
+            var weather = await weatherProvider.GetCurrentWeatherAsync(city, cancellationToken);
+
+            return Ok(weather);
+        }
+    }
+}
