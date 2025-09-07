@@ -1,4 +1,5 @@
 ﻿using FindWeather.BusinessLogic;
+using FindWeather.BusinessLogic.Settings;
 using FindWeather.ConsoleApp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ var host = Host.CreateDefaultBuilder(args)
                 })
                 .ConfigureServices((context, services) =>
                 {
+                    services.Configure<ForecastPeriod>(context.Configuration.GetSection(nameof(ForecastPeriod)));
                     services.AddBusinessLogic(context.Configuration);
 
                     services.AddSingleton<AppUI>();
