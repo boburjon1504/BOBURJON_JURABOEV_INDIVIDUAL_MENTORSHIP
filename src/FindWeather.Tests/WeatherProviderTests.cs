@@ -18,13 +18,13 @@ public class WeatherProviderTests
         var geoCodingApiMock = new Mock<IGeoCodingApi>();
 
         geoCodingApiMock
-            .Setup(g => g.SearchCityAsync(city))
+            .Setup(g => g.SearchCityAsync(city, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GeoCodingResponse
             {
                 Results = [ new GeoResult { Latitude = latitude, Longitude = longitude }]
             });
 
-        openMeteoApiMock.Setup(o => o.GetCurrentTemperatureAsync(latitude, longitude, true)).ReturnsAsync(new CurrentWeatherReponse
+        openMeteoApiMock.Setup(o => o.GetCurrentTemperatureAsync(latitude, longitude, true, It.IsAny<CancellationToken>())).ReturnsAsync(new CurrentWeatherReponse
         {
             CurrentWeather = new CurrentWeather
             {
@@ -34,7 +34,7 @@ public class WeatherProviderTests
 
         var weatherProvider = new WeatherProvider(openMeteoApiMock.Object, geoCodingApiMock.Object);
 
-        var currentWeather = await weatherProvider.GetCurrentWeatherAsync(city);
+        var currentWeather = await weatherProvider.GetCurrentWeatherAsync(city, It.IsAny<CancellationToken>());
 
         Assert.Equal(25, currentWeather.Temperature);
     }

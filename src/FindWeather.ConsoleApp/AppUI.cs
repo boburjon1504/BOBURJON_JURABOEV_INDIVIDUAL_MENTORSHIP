@@ -1,13 +1,14 @@
 ﻿using FindWeather.BusinessLogic.Helpers;
 using FindWeather.BusinessLogic.Models;
 using FindWeather.BusinessLogic.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace FindWeather.ConsoleApp;
 
-public class AppUI(IWeatherProvider weatherProvider)
+public class AppUI(IWeatherProvider weatherProvider, IConfiguration configuration)
 {
     public async Task RunAsync()
     {
@@ -15,7 +16,9 @@ public class AppUI(IWeatherProvider weatherProvider)
             "1. Only 1.\n2. More than one.");
 
         var input = Console.ReadKey().Key;
-
+        var maxQueryExecutionTimeInSeconds = int.Parse(configuration["MaxQueryExecutionTimeInSeconds"]!);
+        var cancelationSource = new CancellationTokenSource(TimeSpan.FromSeconds(maxQueryExecutionTimeInSeconds));
+        var cancenllationToken = cancelationSource.Token;
         switch (input)
         {
             case ConsoleKey.NumPad1:
@@ -23,7 +26,7 @@ public class AppUI(IWeatherProvider weatherProvider)
 
                 DisplayForecastType();
 
-                await ProcessUserInput(city);
+                await ProcessUserInput(city, cancenllationToken);
 
                 break;
             case ConsoleKey.NumPad2:
@@ -36,7 +39,7 @@ public class AppUI(IWeatherProvider weatherProvider)
                     var stopWatch = Stopwatch.StartNew();
                     try
                     {
-                        var weather = await weatherProvider.GetCurrentWeatherAsync(city);
+                        var weather = await weatherProvider.GetCurrentWeatherAsync(city, cancenllationToken);
                         Console.WriteLine($"SUCCESS CASE - City: {city} - {weather.Temperature}°C.  Timer - {stopWatch.ElapsedMilliseconds}ms");
                         return (city, weather.Temperature);
                     }
@@ -93,19 +96,19 @@ public class AppUI(IWeatherProvider weatherProvider)
         return cities;
     }
 
-    private async Task ProcessUserInput(string city)
+    private async Task ProcessUserInput(string city, CancellationToken cancellationToken)
     {
         var input = Console.ReadKey().Key;
 
         switch (input)
         {
             case ConsoleKey.NumPad1:
-                var weather = weatherProvider.GetCurrentWeatherAsync(city);
+                var weather = weatherProvider.GetCurrentWeatherAsync(city, cancellationToken);
                 DisplayCurrentWeather(city, weather.Result);
                 break;
             case ConsoleKey.NumPad2:
                 var numberOfDays = GetNumberOfDays();
-                var weathers = await weatherProvider.GetWeatherInRangeAsync(city, DateTime.Now.ToString("yyyy-MM-dd"), DateTime.Now.AddDays(numberOfDays).ToString("yyyy-MM-dd"));
+                var weathers = await weatherProvider.GetWeatherInRangeAsync(city, DateTime.Now.ToString("yyyy-MM-dd"), DateTime.Now.AddDays(numberOfDays).ToString("yyyy-MM-dd"), cancellationToken);
                 DisplayWeatherForecast(city, weathers);
                 break;
             default: break;
