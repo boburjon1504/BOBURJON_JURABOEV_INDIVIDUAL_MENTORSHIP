@@ -15,5 +15,16 @@ namespace FindWeather.Api.Controllers
 
             return Ok(weather);
         }
+
+        [HttpGet("forecast/{city}")]
+        public async Task<IActionResult> GetTemperatureInRange(string city, [FromQuery] int days)
+        {
+            var weathers = await weatherProvider
+                                .GetWeatherInRangeAsync(city,
+                                DateTime.Now.ToString("yyyy-MM-dd"),
+                                DateTime.Now.AddDays(days - 1).ToString("yyyy-MM-dd"));
+
+            return Ok(weathers);
+        }
     }
 }
