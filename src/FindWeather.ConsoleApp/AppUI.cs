@@ -1,6 +1,7 @@
 ﻿using FindWeather.BusinessLogic.Helpers;
 using FindWeather.BusinessLogic.Models;
 using FindWeather.BusinessLogic.Services.Interfaces;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -10,10 +11,86 @@ public class AppUI(IWeatherProvider weatherProvider)
 {
     public async Task RunAsync()
     {
-        string city = GetCityName();
+        Console.WriteLine("Choose how many city you want to search:\n" +
+            "1. Only 1.\n2. More than one.");
 
-        DisplayForecastType();
-        await ProcessUserInput(city);
+        var input = Console.ReadKey().Key;
+
+        switch (input)
+        {
+            case ConsoleKey.NumPad1:
+                string city = GetCityName();
+
+                DisplayForecastType();
+
+                await ProcessUserInput(city);
+
+                break;
+            case ConsoleKey.NumPad2:
+                Console.WriteLine("Enter city names. Every time you write pres enter to write new city name: ");
+
+                List<string> cities = GetUserInputCities();
+
+                var tasks = cities.Select(async city =>
+                {
+                    var stopWatch = Stopwatch.StartNew();
+                    try
+                    {
+                        var weather = await weatherProvider.GetCurrentWeatherAsync(city);
+                        Console.WriteLine($"SUCCESS CASE - City: {city} - {weather.Temperature}°C.  Timer - {stopWatch.ElapsedMilliseconds}ms");
+                        return (city, weather.Temperature);
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine($"ON FAIL - City: {city}. Error {ex.Message}. Timer - {stopWatch.ElapsedMilliseconds}");
+                    }
+                    finally
+                    {
+                        stopWatch.Stop();
+                    }
+
+                    return ("no city", -1000);
+                });
+
+                var temperatures = await Task.WhenAll(tasks);
+
+                var max = temperatures.MaxBy(t => t.Temperature);
+                var success = temperatures.Where(t => t.Temperature != -1000).Count();
+                var errors = temperatures.Length - success;
+
+                if(success == 0)
+                {
+                    Console.WriteLine("Error no successfull request");
+                }
+                else
+                {
+                    Console.WriteLine($"City with max temperature {max.Temperature}°C is {max.city}\n" +
+                        $"Successfull requests count: {success}\n" +
+                        $"Failed request count: {errors}");
+                }
+
+                break;
+            default: break;
+        }
+
+    }
+
+    private static List<string> GetUserInputCities()
+    {
+        var cities = new List<string>();
+
+        var cityName = Console.ReadLine();
+
+        while (cityName?.Length > 0)
+        {
+            cities.Add(cityName);
+
+            Console.Write("Enter new city name: ");
+
+            cityName = Console.ReadLine();
+        }
+
+        return cities;
     }
 
     private async Task ProcessUserInput(string city)
@@ -31,6 +108,7 @@ public class AppUI(IWeatherProvider weatherProvider)
                 var weathers = await weatherProvider.GetWeatherInRangeAsync(city, DateTime.Now.ToString("yyyy-MM-dd"), DateTime.Now.AddDays(numberOfDays).ToString("yyyy-MM-dd"));
                 DisplayWeatherForecast(city, weathers);
                 break;
+            default: break;
         }
     }
 
